@@ -124,7 +124,7 @@ router.get('/thumbnail', async (req, res, next) => {
       return res.status(400).json({ error: 'Please enter a valid YouTube link.' });
     }
 
-    const baseName = await resolveTitleForFileName({
+    const baseName = await resolveTitleForFileName ({
       url: normalizedUrl,
       requestedTitle: normalizedTitle,
       fallback: 'thumbnail'
