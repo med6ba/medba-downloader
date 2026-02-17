@@ -254,38 +254,6 @@ git status
 
 and verify no sensitive files are staged.
 
-## Troubleshooting
-
-### `yt-dlp` not found
-
-Install it and make sure it is in your PATH:
-
-```bash
-python3 -m pip install yt-dlp
-```
-
-### `ffmpeg` not found
-
-Install ffmpeg using your OS package manager:
-
-```bash
-# Linux (example)
-sudo apt install -y ffmpeg
-```
-
-```powershell
-# Windows
-winget install --id Gyan.FFmpeg -e
-```
-
-### CORS errors
-
-Set `CLIENT_ORIGIN` in `server/.env` to your frontend URL.
-
-### Port already in use
-
-Change `PORT` in `server/.env` and update `VITE_API_URL` in `client/.env`.
-
 ## Legal Notice
 
 This tool is for personal/authorized use only.
