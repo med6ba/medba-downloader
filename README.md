@@ -133,17 +133,9 @@ VITE_GITHUB_URL=https://github.com/med6ba/medba-downloader
 
 ### 3) Run the app
 
-Terminal 1 (backend):
+From the project root, run:
 
 ```bash
-cd server
-npm run dev
-```
-
-Terminal 2 (frontend):
-
-```bash
-cd client
 npm run dev
 ```
 
