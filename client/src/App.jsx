@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Github, MoonStar, SunMedium } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Github, MoonStar, RefreshCw, SunMedium } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const GITHUB_URL = import.meta.env.VITE_GITHUB_URL || 'https://github.com/med6ba/medba-downloader';
@@ -25,6 +25,7 @@ const I18N = {
     mp3Title: 'MP3',
     unknownQuality: 'Unknown quality',
     githubStarLabel: 'Star on GitHub',
+    resetPageLabel: 'Reset page',
     languageTarget: 'Switch to Arabic',
     themeToDark: 'Dark mode',
     themeToLight: 'Light mode',
@@ -50,6 +51,7 @@ const I18N = {
     mp3Title: 'MP3',
     unknownQuality: 'جودة غير معروفة',
     githubStarLabel: 'ضع نجمة على GitHub',
+    resetPageLabel: 'إعادة ضبط الصفحة',
     languageTarget: 'Switch to English',
     themeToDark: 'الوضع الداكن',
     themeToLight: 'الوضع الفاتح',
@@ -316,6 +318,18 @@ export default function App() {
     });
   };
 
+  const handleResetPage = () => {
+    setUrl('');
+    setTitle('');
+    setFormats([]);
+    setError('');
+    setInfo('');
+    setIsLoadingFormats(false);
+    setIsDownloadingMp3(false);
+    setIsDownloadingThumbnail(false);
+    setDownloadingFormatId('');
+  };
+
   return (
     <main className="page">
       <section className="panel">
@@ -335,6 +349,15 @@ export default function App() {
             >
               <Github size={18} strokeWidth={1.9} />
             </a>
+            <button
+              type="button"
+              className="ghost-btn"
+              onClick={handleResetPage}
+              aria-label={t.resetPageLabel}
+              title={t.resetPageLabel}
+            >
+              <RefreshCw size={18} strokeWidth={1.9} />
+            </button>
             <button
               type="button"
               className="ghost-btn lang-toggle-btn"

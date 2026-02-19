@@ -4,9 +4,27 @@ Minimalist YouTube downloader web app.
 Paste a YouTube URL, pick a quality, download MP4/MP3/thumbnail, and leave.
 No accounts, no database, no dashboard.
 
-## Features 
+## Screenshots
 
-- Single-page UI (React + Vite)
+### Light Mode
+
+![Light Mode](screenshots/light.png)
+
+### Dark Mode
+
+![Dark Mode](screenshots/dark.png)
+
+### Format Selection
+
+![Formats](screenshots/formats.png)
+
+### English Support
+
+![English](screenshots/english.png)
+
+## Features
+
+- Single-page UI
 - Download MP4 qualities with audio
 - Download MP3
 - Download original thumbnail
@@ -17,10 +35,10 @@ No accounts, no database, no dashboard.
 
 ## Tech Stack
 
-- Frontend: React 18 + Vite
-- Backend: Node.js + Express
-- Download engine: `yt-dlp` (via `child_process.spawn`)
-- Media processing: `ffmpeg`
+- Frontend: ![React](https://img.shields.io/badge/React-18-blue?logo=react) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=fff)
+- Backend: ![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js) ![!Express.js](https://img.shields.io/badge/Express.js-%23404d59.svg?logo=express&logoColor=%2361DAFB)
+- Download engine: ![yt-dlp](https://img.shields.io/badge/yt--dlp-Download%20Engine-red)
+- Media processing: ![FFmpeg](https://img.shields.io/badge/FFmpeg-Media%20Processing-orange?logo=ffmpeg)
 
 ## Project Structure
 
@@ -50,12 +68,12 @@ medba-downloader/
 
 ## Requirements
 
-- Node.js 18+ (Node 18+ required because backend uses global `fetch`)
-- npm
-- `ffmpeg`
-- `yt-dlp`
+![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)
+![npm](https://img.shields.io/badge/npm-Package%20Manager-red?logo=npm)
+![yt-dlp](https://img.shields.io/badge/yt--dlp-Download%20Engine-red)
+![FFmpeg](https://img.shields.io/badge/FFmpeg-Media%20Processing-orange?logo=ffmpeg)
 
-Built and tested on: **Fedora Linux 43**.
+Built and tested on: ![Fedora](https://img.shields.io/badge/Fedora-294172?logo=fedora&logoColor=white)
 
 ## Setup by OS
 
@@ -65,7 +83,7 @@ Install `ffmpeg`, `python3`, and `pip` with your distro package manager, then in
 
 Examples:
 
-Ubuntu/Debian:
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?logo=ubuntu&logoColor=white) ![Debian](https://img.shields.io/badge/Debian-A81D33?logo=debian&logoColor=white)
 
 ```bash
 sudo apt update
@@ -73,21 +91,21 @@ sudo apt install -y ffmpeg python3-pip
 python3 -m pip install yt-dlp
 ```
 
-Fedora:
+![Fedora](https://img.shields.io/badge/Fedora-294172?logo=fedora&logoColor=white)
 
 ```bash
 sudo dnf install ffmpeg python3-pip
 python3 -m pip install yt-dlp
 ```
 
-Arch:
+![Arch Linux](https://img.shields.io/badge/Arch-1793D1?logo=arch-linux&logoColor=white)
 
 ```bash
 sudo pacman -S ffmpeg python-pip
 python -m pip install yt-dlp
 ```
 
-### Windows
+![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white)
 
 Install dependencies with `winget`:
 
@@ -250,3 +268,5 @@ and verify no sensitive files are staged.
 
 This tool is for personal/authorized use only.
 Users are responsible for complying with YouTube Terms of Service and applicable copyright laws.
+
+![Stars](https://img.shields.io/github/stars/med6ba/medba-downloader?logo=github) ![Forks](https://img.shields.io/github/forks/med6ba/medba-downloader?logo=github)
