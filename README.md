@@ -4,7 +4,7 @@ Minimalist YouTube downloader web app.
 Paste a YouTube URL, pick a quality, download MP4/MP3/thumbnail, and leave.
 No accounts, no database, no dashboard.
 
-## Features
+## Features 
 
 - Single-page UI (React + Vite)
 - Download MP4 qualities with audio
