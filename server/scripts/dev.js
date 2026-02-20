@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, '..', '..');
 
 const children = [
   startProcess('server', ['run', 'dev', '--prefix', path.join(rootDir, 'server')]),

@@ -4,6 +4,8 @@ Medba Downloader is an open-source YouTube Downloader web app.
 Paste a YouTube URL, pick a quality, and download MP4, MP3, or thumbnail files in seconds.
 No accounts, no database, no dashboard.
 
+![GitHub repo size](https://img.shields.io/github/repo-size/med6ba/medba-downloader) ![GitHub license](https://img.shields.io/github/license/med6ba/medba-downloader)
+
 ## Screenshots
 
 ### Light Mode
@@ -60,6 +62,8 @@ medba-downloader/
 │   ├── package.json
 │   └── vite.config.js
 ├── server/
+│   ├── scripts/
+│   │   └── dev.js
 │   ├── routes/
 │   │   ├── download.js
 │   │   └── formats.js
