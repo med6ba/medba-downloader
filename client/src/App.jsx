@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Menu, RefreshCw, Star, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, ArrowRight, Github, MoonStar, RefreshCw, SunMedium } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const GITHUB_URL = import.meta.env.VITE_GITHUB_URL || 'https://github.com/med6ba/medba-downloader';
@@ -28,17 +28,6 @@ const I18N = {
     unknownQuality: 'Unknown quality',
     unknownChannel: 'Unknown channel',
     videoThumbnailAlt: 'Video thumbnail',
-    openMenuLabel: 'Open settings',
-    closeMenuLabel: 'Close settings',
-    menuTitle: 'Settings',
-    menuGithubCta: 'Add a star on GitHub',
-    menuResetShort: 'Reset page',
-    menuLanguageLabel: 'Language',
-    menuThemeLabel: 'Theme',
-    menuLangEnglishLabel: 'English',
-    menuLangArabicLabel: 'Arabic',
-    menuThemeDarkShort: 'Dark mode',
-    menuThemeLightShort: 'Light mode',
     githubStarLabel: 'Add a star on GitHub',
     resetPageLabel: 'Reset page',
     languageTarget: 'Switch to Arabic',
@@ -67,17 +56,6 @@ const I18N = {
     unknownQuality: 'جودة غير معروفة',
     unknownChannel: 'قناة غير معروفة',
     videoThumbnailAlt: 'الصورة المصغرة للفيديو',
-    openMenuLabel: 'فتح الإعدادات',
-    closeMenuLabel: 'إغلاق الإعدادات',
-    menuTitle: 'الإعدادات',
-    menuGithubCta: 'أضف نجمة على GitHub',
-    menuResetShort: 'إعادة ضبط الصفحة',
-    menuLanguageLabel: 'اللغة',
-    menuThemeLabel: 'المظهر',
-    menuLangEnglishLabel: 'الإنجليزية',
-    menuLangArabicLabel: 'العربية',
-    menuThemeDarkShort: 'الوضع الداكن',
-    menuThemeLightShort: 'الوضع الفاتح',
     githubStarLabel: 'أضف نجمة على GitHub',
     resetPageLabel: 'إعادة ضبط الصفحة',
     languageTarget: 'Switch to English',
@@ -281,10 +259,8 @@ export default function App() {
   const [isDownloadingMp3, setIsDownloadingMp3] = useState(false);
   const [isDownloadingThumbnail, setIsDownloadingThumbnail] = useState(false);
   const [downloadingFormatId, setDownloadingFormatId] = useState('');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [language, setLanguage] = useState(getInitialLanguage);
   const [theme, setTheme] = useState(getInitialTheme);
-  const firstMenuActionRef = useRef(null);
 
   const cleanUrl = useMemo(() => url.trim(), [url]);
   const t = I18N[language];
@@ -312,20 +288,6 @@ export default function App() {
   useEffect(() => {
     document.title = t.appName;
   }, [t.appName]);
-
-  useEffect(() => {
-    if (!isMenuOpen) {
-      return undefined;
-    }
-
-    const focusTimer = setTimeout(() => {
-      firstMenuActionRef.current?.focus();
-    }, 0);
-
-    return () => {
-      clearTimeout(focusTimer);
-    };
-  }, [isMenuOpen]);
 
   const fetchFormats = async () => {
     setError('');
@@ -479,28 +441,8 @@ export default function App() {
     setDownloadingFormatId('');
   };
 
-  const handleLanguageSelect = (nextLanguage) => {
-    if (nextLanguage === language) {
-      return;
-    }
-
-    setLanguage(nextLanguage);
-    setError('');
-    setInfo('');
-  };
-
-  const handleThemeSelect = (nextTheme) => {
-    if (nextTheme === theme) {
-      return;
-    }
-
-    setTheme(nextTheme);
-  };
-
   const channelDisplayName = videoPreview.channelName || t.unknownChannel;
   const channelDisplayInitial = getDisplayInitial(channelDisplayName);
-  const languageStateLabel = language === 'ar' ? t.menuLangArabicLabel : t.menuLangEnglishLabel;
-  const themeStateLabel = theme === 'dark' ? t.menuThemeDarkShort : t.menuThemeLightShort;
 
   return (
     <main className="page">
@@ -511,87 +453,47 @@ export default function App() {
             <p>{t.subtitle}</p>
           </div>
           <div className="toggles">
-            <div className="menu-wrap">
-              <button
-                type="button"
-                className="ghost-btn menu-trigger-btn"
-                aria-label={isMenuOpen ? t.closeMenuLabel : t.openMenuLabel}
-                aria-haspopup="dialog"
-                aria-expanded={isMenuOpen}
-                aria-controls="app-action-menu"
-                onClick={() => setIsMenuOpen((current) => !current)}
-              >
-                {isMenuOpen ? <X size={18} strokeWidth={2} /> : <Menu size={18} strokeWidth={2} />}
-              </button>
-
-              {isMenuOpen && (
-                <div
-                  id="app-action-menu"
-                  className="action-menu"
-                  role="dialog"
-                  aria-modal="false"
-                  aria-label={t.menuTitle}
-                >
-                  <a
-                    ref={firstMenuActionRef}
-                    className="menu-item"
-                    href={GITHUB_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={t.githubStarLabel}
-                    title={t.githubStarLabel}
-                  >
-                    <span className="menu-item-title">{t.menuGithubCta}</span>
-                    <Star size={15} strokeWidth={2} aria-hidden="true" />
-                  </a>
-
-                  <button
-                    type="button"
-                    className="menu-item"
-                    onClick={handleResetPage}
-                    aria-label={t.resetPageLabel}
-                    title={t.resetPageLabel}
-                  >
-                    <span className="menu-item-title">{t.menuResetShort}</span>
-                    <RefreshCw size={15} strokeWidth={2} aria-hidden="true" />
-                  </button>
-
-                  <div className="menu-switch-row">
-                    <div className="menu-switch-copy">
-                      <span className="menu-switch-label">{t.menuLanguageLabel}</span>
-                      <span className="menu-switch-state">{languageStateLabel}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className={`menu-switch-btn ${language === 'ar' ? 'is-active' : ''}`}
-                      onClick={() => handleLanguageSelect(language === 'en' ? 'ar' : 'en')}
-                      aria-label={t.languageTarget}
-                      aria-pressed={language === 'ar'}
-                      title={t.languageTarget}
-                    >
-                      <span className="menu-switch-thumb" aria-hidden="true" />
-                    </button>
-                  </div>
-
-                  <div className="menu-switch-row">
-                    <div className="menu-switch-copy">
-                      <span className="menu-switch-label">{t.menuThemeLabel}</span>
-                      <span className="menu-switch-state">{themeStateLabel}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className={`menu-switch-btn ${theme === 'dark' ? 'is-active' : ''}`}
-                      onClick={() => handleThemeSelect(theme === 'dark' ? 'light' : 'dark')}
-                      aria-label={theme === 'dark' ? t.themeToLight : t.themeToDark}
-                      aria-pressed={theme === 'dark'}
-                      title={theme === 'dark' ? t.themeToLight : t.themeToDark}
-                    >
-                      <span className="menu-switch-thumb" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <a
+              className="ghost-btn"
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={t.githubStarLabel}
+              title={t.githubStarLabel}
+            >
+              <Github size={18} strokeWidth={1.9} />
+            </a>
+            <button
+              type="button"
+              className="ghost-btn"
+              onClick={handleResetPage}
+              aria-label={t.resetPageLabel}
+              title={t.resetPageLabel}
+            >
+              <RefreshCw size={18} strokeWidth={1.9} />
+            </button>
+            <button
+              type="button"
+              className="ghost-btn lang-toggle-btn"
+              onClick={() => {
+                setLanguage((current) => (current === 'en' ? 'ar' : 'en'));
+                setError('');
+                setInfo('');
+              }}
+              aria-label={t.languageTarget}
+              title={t.languageTarget}
+            >
+              <span>{language === 'en' ? 'ع' : 'EN'}</span>
+            </button>
+            <button
+              type="button"
+              className="ghost-btn"
+              onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+              aria-label={theme === 'dark' ? t.themeToLight : t.themeToDark}
+              title={theme === 'dark' ? t.themeToLight : t.themeToDark}
+            >
+              {theme === 'dark' ? <SunMedium size={18} strokeWidth={1.9} /> : <MoonStar size={18} strokeWidth={1.9} />}
+            </button>
           </div>
         </header>
 
