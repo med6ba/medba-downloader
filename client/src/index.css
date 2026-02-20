@@ -379,8 +379,46 @@ body {
 .quality-label {
   font-size: 0.96rem;
   font-weight: 600;
+  width: 100%;
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.quality-label-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.quality-tier-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.2rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--surface-border);
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: color-mix(in oklab, var(--surface-border) 34%, var(--surface-solid));
+  color: var(--text-muted);
+  border-color: var(--surface-border);
+}
+
+.quality-tier-icon {
+  min-width: 1.9rem;
+  padding: 0.14rem 0.34rem;
+}
+
+.quality-tier-icon svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 
 .quality-head {

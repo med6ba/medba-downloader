@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Github, MoonStar, RefreshCw, SunMedium } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Github, Image as ImageIcon, MoonStar, Music2, RefreshCw, SunMedium } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const GITHUB_URL = import.meta.env.VITE_GITHUB_URL || 'https://github.com/med6ba/medba-downloader';
@@ -246,6 +246,37 @@ function getDisplayInitial(value) {
   }
 
   return normalized[0].toUpperCase();
+}
+
+function getQualityTierLabel(value) {
+  const normalized = normalizeText(value).toLowerCase();
+  const heightMatch = normalized.match(/(\d{3,4})p/);
+  if (!heightMatch?.[1]) {
+    return '';
+  }
+
+  const height = Number(heightMatch[1]);
+  if (!Number.isFinite(height)) {
+    return '';
+  }
+
+  if (height === 2160) {
+    return '4K';
+  }
+
+  if (height === 1440) {
+    return '2K';
+  }
+
+  if (height === 1080) {
+    return 'HD';
+  }
+
+  if (height === 720) {
+    return 'SD';
+  }
+
+  return '';
 }
 
 export default function App() {
@@ -552,29 +583,46 @@ export default function App() {
               </div>
             </article>
             <ul className="format-list">
-              {formats.map((format) => (
-                <li key={format.formatId} className="quality-card">
-                  <div className="quality-head">
-                    <strong className="quality-label">{format.quality || t.unknownQuality}</strong>
-                  </div>
-                  <button
-                    type="button"
-                    className="primary-btn card-btn"
-                    onClick={() => handleVideoDownload(format.formatId, format.hasAudio)}
-                    disabled={
-                      isLoadingFormats ||
-                      isDownloadingMp3 ||
-                      isDownloadingThumbnail ||
-                      Boolean(downloadingFormatId)
-                    }
-                  >
-                    {downloadingFormatId === format.formatId ? t.preparing : t.download}
-                  </button>
-                </li>
-              ))}
+              {formats.map((format) => {
+                const qualityLabel = format.quality || t.unknownQuality;
+                const qualityTier = getQualityTierLabel(format.quality);
+
+                return (
+                  <li key={format.formatId} className="quality-card">
+                    <div className="quality-head">
+                      <strong className="quality-label">
+                        <span className="quality-label-text">{qualityLabel}</span>
+                        {qualityTier && (
+                          <span className="quality-tier-badge">
+                            {qualityTier}
+                          </span>
+                        )}
+                      </strong>
+                    </div>
+                    <button
+                      type="button"
+                      className="primary-btn card-btn"
+                      onClick={() => handleVideoDownload(format.formatId, format.hasAudio)}
+                      disabled={
+                        isLoadingFormats ||
+                        isDownloadingMp3 ||
+                        isDownloadingThumbnail ||
+                        Boolean(downloadingFormatId)
+                      }
+                    >
+                      {downloadingFormatId === format.formatId ? t.preparing : t.download}
+                    </button>
+                  </li>
+                );
+              })}
               <li key="mp3-download-card" className="quality-card">
                 <div className="quality-head">
-                  <strong className="quality-label">{t.mp3Title}</strong>
+                  <strong className="quality-label">
+                    <span className="quality-label-text">{t.mp3Title}</span>
+                    <span className="quality-tier-badge quality-tier-icon" aria-hidden="true">
+                      <Music2 size={12} strokeWidth={2.1} />
+                    </span>
+                  </strong>
                 </div>
                 <button
                   type="button"
@@ -592,7 +640,12 @@ export default function App() {
               </li>
               <li key="thumbnail-download-card" className="quality-card">
                 <div className="quality-head">
-                  <strong className="quality-label">{t.thumbnailTitle}</strong>
+                  <strong className="quality-label">
+                    <span className="quality-label-text">{t.thumbnailTitle}</span>
+                    <span className="quality-tier-badge quality-tier-icon" aria-hidden="true">
+                      <ImageIcon size={12} strokeWidth={2.1} />
+                    </span>
+                  </strong>
                 </div>
                 <button
                   type="button"
