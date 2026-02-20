@@ -124,7 +124,7 @@ router.get('/thumbnail', async (req, res, next) => {
       return res.status(400).json({ error: 'Please enter a valid YouTube link.' });
     }
 
-    const baseName = await resolveTitleForFileName ({
+    const baseName = await resolveTitleForFileName({
       url: normalizedUrl,
       requestedTitle: normalizedTitle,
       fallback: 'thumbnail'
@@ -191,7 +191,7 @@ function isValidYouTubeUrl(value) {
   let parsedUrl;
   try {
     parsedUrl = new URL(value);
-  } catch (error) {
+  } catch {
     return false;
   }
 
@@ -210,7 +210,7 @@ async function getBestThumbnailInfo(url) {
   let metadata;
   try {
     metadata = JSON.parse(stdout);
-  } catch (error) {
+  } catch {
     throw withStatus(500, 'Could not get the thumbnail for this video.');
   }
 
@@ -271,7 +271,7 @@ function getFileExtensionFromUrl(value) {
     const pathname = new URL(normalized).pathname;
     const ext = pathname.split('.').pop() || '';
     return sanitizeFileExtension(ext);
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -439,7 +439,7 @@ async function resolveTitleForFileName({ url, requestedTitle, fallback }) {
     if (safeFetchedTitle) {
       return safeFetchedTitle;
     }
-  } catch (error) {
+  } catch {
     return fallback;
   }
 
@@ -584,7 +584,7 @@ function isHttpUrl(value) {
   try {
     const parsed = new URL(value);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch (error) {
+  } catch {
     return false;
   }
 }

@@ -19,7 +19,7 @@ router.post('/', async (req, res, next) => {
     let metadata;
     try {
       metadata = JSON.parse(stdout);
-    } catch (error) {
+    } catch {
       return res.status(500).json({
         error: "We couldn't read this video's details. Please try another link."
       });
@@ -77,7 +77,6 @@ router.post('/', async (req, res, next) => {
       qualityFormats.push({
         formatId: format.format_id,
         quality: `${height}p`,
-        size: format.filesize || format.filesize_approx || null,
         hasAudio
       });
 
@@ -92,14 +91,96 @@ router.post('/', async (req, res, next) => {
       });
     }
 
+    const channelName = getChannelName(metadata);
+
     return res.json({
       title: metadata.title || 'YouTube Video',
+      duration: normalizeDuration(metadata.duration),
+      thumbnail: getBestVideoThumbnail(metadata),
+      channel: {
+        name: channelName
+      },
       formats: qualityFormats
     });
   } catch (error) {
     return next(error);
   }
 });
+
+function getBestVideoThumbnail(metadata) {
+  const thumbnails = Array.isArray(metadata?.thumbnails) ? metadata.thumbnails : [];
+  const bestFromList = thumbnails
+    .map((thumbnail) => {
+      const normalizedUrl = normalizeHttpUrl(thumbnail?.url);
+      return {
+        url: normalizedUrl,
+        score: getThumbnailScore(thumbnail)
+      };
+    })
+    .filter((thumbnail) => thumbnail.url)
+    .sort((a, b) => b.score - a.score)[0];
+
+  if (bestFromList?.url) {
+    return bestFromList.url;
+  }
+
+  return normalizeHttpUrl(metadata?.thumbnail);
+}
+
+function getChannelName(metadata) {
+  const candidates = [
+    metadata?.channel,
+    metadata?.uploader,
+    metadata?.creator,
+    metadata?.uploader_id,
+    metadata?.channel_id
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeInput(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return '';
+}
+
+function normalizeHttpUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return '';
+  }
+
+  const normalizedValue = value.trim().startsWith('//') ? `https:${value.trim()}` : value.trim();
+
+  try {
+    const parsed = new URL(normalizedValue);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return '';
+    }
+
+    return parsed.toString();
+  } catch {
+    return '';
+  }
+}
+
+function getThumbnailScore(thumbnail) {
+  const width = Number(thumbnail?.width) || 0;
+  const height = Number(thumbnail?.height) || 0;
+  const preference = Number(thumbnail?.preference) || 0;
+
+  return width * height + preference;
+}
+
+function normalizeDuration(value) {
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return null;
+  }
+
+  return Math.floor(seconds);
+}
 
 function isValidYouTubeUrl(value) {
   if (!value || typeof value !== 'string' || value.length > MAX_URL_LENGTH) {
@@ -109,7 +190,7 @@ function isValidYouTubeUrl(value) {
   let url;
   try {
     url = new URL(value);
-  } catch (error) {
+  } catch {
     return false;
   }
 

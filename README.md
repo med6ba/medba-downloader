@@ -1,33 +1,35 @@
 # Medba Downloader
 
-Minimalist YouTube downloader web app.
-Paste a YouTube URL, pick a quality, download MP4/MP3/thumbnail, and leave.
+Medba Downloader is an open-source YouTube Downloader web app.
+Paste a YouTube URL, pick a quality, and download MP4, MP3, or thumbnail files in seconds.
 No accounts, no database, no dashboard.
+
+If you are searching for a lightweight `youtube downloader`, `medba downloader`, or `medba` project on GitHub, this repository is built exactly for that use case.
 
 ## Screenshots
 
 ### Light Mode
 
-![Light Mode](screenshots/light.png)
+![Light Mode](./client/public/assets/screenshots/)
 
 ### Dark Mode
 
-![Dark Mode](screenshots/dark.png)
+![Dark Mode](./client/public/assets/screenshots/)
 
 ### Format Selection
 
-![Formats](screenshots/formats.png)
+![Formats](./client/public/assets/screenshots/)
 
 ### English Support
 
-![English](screenshots/english.png)
+![English](./client/public/assets/screenshots/)
 
 ## Features
 
-- Single-page UI
-- Download MP4 qualities with audio
-- Download MP3
-- Download original thumbnail
+- Fast single-page YouTube Downloader UI
+- Download YouTube videos as MP4 qualities with merged audio
+- Download YouTube audio as MP3
+- Download original YouTube thumbnail
 - English/Arabic language toggle
 - Light/Dark theme toggle
 - Friendly and readable error messages
@@ -159,6 +161,8 @@ npm run dev
 
 Open: `http://localhost:5173`
 
+You now have Medba Downloader running locally as a full YouTube Downloader web app.
+
 ## Environment Variables
 
 From `.env.example`:
@@ -186,7 +190,7 @@ Base URL: `http://localhost:5000`
 
 ### POST `/api/formats`
 
-Returns available MP4 qualities for a YouTube URL.
+Returns available MP4 qualities for a YouTube URL in Medba Downloader.
 
 Request body:
 
@@ -205,7 +209,6 @@ Response:
     {
       "formatId": "137",
       "quality": "1080p",
-      "size": 123456789,
       "hasAudio": false
     }
   ]
@@ -243,7 +246,7 @@ Query params:
 
 ## Implementation Notes
 
-- YouTube URL validation on backend routes
+- YouTube URL validation on backend routes for safer YouTube Downloader requests
 - `yt-dlp` invoked with `spawn` for safer process handling
 - Request size limit + API rate limiting are enabled server-side
 - Security headers are enabled (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, etc.)
@@ -268,5 +271,6 @@ and verify no sensitive files are staged.
 
 This tool is for personal/authorized use only.
 Users are responsible for complying with YouTube Terms of Service and applicable copyright laws.
+Medba Downloader is an independent open-source project and is not affiliated with YouTube or Google.
 
 ![Stars](https://img.shields.io/github/stars/med6ba/medba-downloader?logo=github) ![Forks](https://img.shields.io/github/forks/med6ba/medba-downloader?logo=github)

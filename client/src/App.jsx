@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Github, MoonStar, RefreshCw, SunMedium } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, Menu, RefreshCw, Star, X } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const GITHUB_URL = import.meta.env.VITE_GITHUB_URL || 'https://github.com/med6ba/medba-downloader';
+const LANGUAGE_STORAGE_KEY = 'ui-language';
+const THEME_STORAGE_KEY = 'ui-theme';
 
 const I18N = {
   en: {
@@ -10,7 +12,7 @@ const I18N = {
     subtitle: 'Paste a YouTube link and download MP4, MP3, or the thumbnail.',
     inputPlaceholder: 'Paste your YouTube URL here',
     loadingQualities: 'Loading...',
-    download: 'downlaod',
+    download: 'Download',
     preparing: 'Preparing...',
     preparingDownload: 'Preparing your download. Please wait...',
     downloadStarted: (fileName) => `Download started: ${fileName}`,
@@ -24,7 +26,20 @@ const I18N = {
     thumbnailTitle: 'Thumbnail',
     mp3Title: 'MP3',
     unknownQuality: 'Unknown quality',
-    githubStarLabel: 'Star on GitHub',
+    unknownChannel: 'Unknown channel',
+    videoThumbnailAlt: 'Video thumbnail',
+    openMenuLabel: 'Open settings',
+    closeMenuLabel: 'Close settings',
+    menuTitle: 'Settings',
+    menuGithubCta: 'Add a star on GitHub',
+    menuResetShort: 'Reset page',
+    menuLanguageLabel: 'Language',
+    menuThemeLabel: 'Theme',
+    menuLangEnglishLabel: 'English',
+    menuLangArabicLabel: 'Arabic',
+    menuThemeDarkShort: 'Dark mode',
+    menuThemeLightShort: 'Light mode',
+    githubStarLabel: 'Add a star on GitHub',
     resetPageLabel: 'Reset page',
     languageTarget: 'Switch to Arabic',
     themeToDark: 'Dark mode',
@@ -50,7 +65,20 @@ const I18N = {
     thumbnailTitle: 'الصورة المصغرة',
     mp3Title: 'MP3',
     unknownQuality: 'جودة غير معروفة',
-    githubStarLabel: 'ضع نجمة على GitHub',
+    unknownChannel: 'قناة غير معروفة',
+    videoThumbnailAlt: 'الصورة المصغرة للفيديو',
+    openMenuLabel: 'فتح الإعدادات',
+    closeMenuLabel: 'إغلاق الإعدادات',
+    menuTitle: 'الإعدادات',
+    menuGithubCta: 'أضف نجمة على GitHub',
+    menuResetShort: 'إعادة ضبط الصفحة',
+    menuLanguageLabel: 'اللغة',
+    menuThemeLabel: 'المظهر',
+    menuLangEnglishLabel: 'الإنجليزية',
+    menuLangArabicLabel: 'العربية',
+    menuThemeDarkShort: 'الوضع الداكن',
+    menuThemeLightShort: 'الوضع الفاتح',
+    githubStarLabel: 'أضف نجمة على GitHub',
     resetPageLabel: 'إعادة ضبط الصفحة',
     languageTarget: 'Switch to English',
     themeToDark: 'الوضع الداكن',
@@ -156,9 +184,96 @@ function getApiErrorMessage(payload, fallbackMessage, language, t) {
   return localizeErrorMessage(rawMessage, language, t);
 }
 
+function getInitialLanguage() {
+  try {
+    const savedLanguage = normalizeText(localStorage.getItem(LANGUAGE_STORAGE_KEY));
+    if (savedLanguage === 'ar' || savedLanguage === 'en') {
+      return savedLanguage;
+    }
+  } catch {
+  }
+
+  return 'en';
+}
+
+function getInitialTheme() {
+  try {
+    const savedTheme = normalizeText(localStorage.getItem(THEME_STORAGE_KEY));
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      return savedTheme;
+    }
+  } catch {
+  }
+
+  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+
+  return 'light';
+}
+
+function createEmptyVideoPreview() {
+  return {
+    thumbnailUrl: '',
+    durationLabel: '',
+    channelName: ''
+  };
+}
+
+function formatDurationLabel(value) {
+  const durationSeconds = Number(value);
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    return '';
+  }
+
+  const total = Math.floor(durationSeconds);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
+function normalizeMediaUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return '';
+  }
+
+  const normalizedValue = value.trim().startsWith('//') ? `https:${value.trim()}` : value.trim();
+
+  try {
+    const parsed = new URL(normalizedValue);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return '';
+    }
+
+    return parsed.toString();
+  } catch {
+    return '';
+  }
+}
+
+function normalizeText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function getDisplayInitial(value) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return '?';
+  }
+
+  return normalized[0].toUpperCase();
+}
+
 export default function App() {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
+  const [videoPreview, setVideoPreview] = useState(createEmptyVideoPreview);
   const [formats, setFormats] = useState([]);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
@@ -166,8 +281,10 @@ export default function App() {
   const [isDownloadingMp3, setIsDownloadingMp3] = useState(false);
   const [isDownloadingThumbnail, setIsDownloadingThumbnail] = useState(false);
   const [downloadingFormatId, setDownloadingFormatId] = useState('');
-  const [language, setLanguage] = useState('en');
-  const [theme, setTheme] = useState('light');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [language, setLanguage] = useState(getInitialLanguage);
+  const [theme, setTheme] = useState(getInitialTheme);
+  const firstMenuActionRef = useRef(null);
 
   const cleanUrl = useMemo(() => url.trim(), [url]);
   const t = I18N[language];
@@ -176,17 +293,39 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    localStorage.setItem('ui-language', language);
+
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    } catch {
+    }
   }, [language]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('ui-theme', theme);
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+    }
   }, [theme]);
 
   useEffect(() => {
     document.title = t.appName;
   }, [t.appName]);
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return undefined;
+    }
+
+    const focusTimer = setTimeout(() => {
+      firstMenuActionRef.current?.focus();
+    }, 0);
+
+    return () => {
+      clearTimeout(focusTimer);
+    };
+  }, [isMenuOpen]);
 
   const fetchFormats = async () => {
     setError('');
@@ -194,6 +333,7 @@ export default function App() {
     setIsLoadingFormats(true);
     setFormats([]);
     setTitle('');
+    setVideoPreview(createEmptyVideoPreview());
 
     try {
       const response = await fetch(`${API_BASE}/api/formats`, {
@@ -210,8 +350,16 @@ export default function App() {
         throw new Error(getApiErrorMessage(data, t.couldNotFetchQualities, language, t));
       }
 
+      const resolvedTitle = normalizeText(data.title) || t.fallbackVideoTitle;
+      const resolvedChannelName = normalizeText(data?.channel?.name);
+
       setFormats(Array.isArray(data.formats) ? data.formats : []);
-      setTitle(data.title || t.fallbackVideoTitle);
+      setTitle(resolvedTitle);
+      setVideoPreview({
+        thumbnailUrl: normalizeMediaUrl(data?.thumbnail),
+        durationLabel: formatDurationLabel(data?.duration),
+        channelName: resolvedChannelName
+      });
     } catch (err) {
       setError(localizeErrorMessage(err.message, language, t) || t.unexpectedError);
     } finally {
@@ -324,11 +472,35 @@ export default function App() {
     setFormats([]);
     setError('');
     setInfo('');
+    setVideoPreview(createEmptyVideoPreview());
     setIsLoadingFormats(false);
     setIsDownloadingMp3(false);
     setIsDownloadingThumbnail(false);
     setDownloadingFormatId('');
   };
+
+  const handleLanguageSelect = (nextLanguage) => {
+    if (nextLanguage === language) {
+      return;
+    }
+
+    setLanguage(nextLanguage);
+    setError('');
+    setInfo('');
+  };
+
+  const handleThemeSelect = (nextTheme) => {
+    if (nextTheme === theme) {
+      return;
+    }
+
+    setTheme(nextTheme);
+  };
+
+  const channelDisplayName = videoPreview.channelName || t.unknownChannel;
+  const channelDisplayInitial = getDisplayInitial(channelDisplayName);
+  const languageStateLabel = language === 'ar' ? t.menuLangArabicLabel : t.menuLangEnglishLabel;
+  const themeStateLabel = theme === 'dark' ? t.menuThemeDarkShort : t.menuThemeLightShort;
 
   return (
     <main className="page">
@@ -339,45 +511,87 @@ export default function App() {
             <p>{t.subtitle}</p>
           </div>
           <div className="toggles">
-            <a
-              className="ghost-btn"
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={t.githubStarLabel}
-              title={t.githubStarLabel}
-            >
-              <Github size={18} strokeWidth={1.9} />
-            </a>
-            <button
-              type="button"
-              className="ghost-btn"
-              onClick={handleResetPage}
-              aria-label={t.resetPageLabel}
-              title={t.resetPageLabel}
-            >
-              <RefreshCw size={18} strokeWidth={1.9} />
-            </button>
-            <button
-              type="button"
-              className="ghost-btn lang-toggle-btn"
-              onClick={() => {
-                setLanguage((current) => (current === 'en' ? 'ar' : 'en'));
-                setError('');
-                setInfo('');
-              }}
-              aria-label={t.languageTarget}
-            >
-              <span>{language === 'en' ? 'ع' : 'EN'}</span>
-            </button>
-            <button
-              type="button"
-              className="ghost-btn"
-              onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-              aria-label={theme === 'dark' ? t.themeToLight : t.themeToDark}
-            >
-              {theme === 'dark' ? <SunMedium size={18} strokeWidth={1.9} /> : <MoonStar size={18} strokeWidth={1.9} />}
-            </button>
+            <div className="menu-wrap">
+              <button
+                type="button"
+                className="ghost-btn menu-trigger-btn"
+                aria-label={isMenuOpen ? t.closeMenuLabel : t.openMenuLabel}
+                aria-haspopup="dialog"
+                aria-expanded={isMenuOpen}
+                aria-controls="app-action-menu"
+                onClick={() => setIsMenuOpen((current) => !current)}
+              >
+                {isMenuOpen ? <X size={18} strokeWidth={2} /> : <Menu size={18} strokeWidth={2} />}
+              </button>
+
+              {isMenuOpen && (
+                <div
+                  id="app-action-menu"
+                  className="action-menu"
+                  role="dialog"
+                  aria-modal="false"
+                  aria-label={t.menuTitle}
+                >
+                  <a
+                    ref={firstMenuActionRef}
+                    className="menu-item"
+                    href={GITHUB_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={t.githubStarLabel}
+                    title={t.githubStarLabel}
+                  >
+                    <span className="menu-item-title">{t.menuGithubCta}</span>
+                    <Star size={15} strokeWidth={2} aria-hidden="true" />
+                  </a>
+
+                  <button
+                    type="button"
+                    className="menu-item"
+                    onClick={handleResetPage}
+                    aria-label={t.resetPageLabel}
+                    title={t.resetPageLabel}
+                  >
+                    <span className="menu-item-title">{t.menuResetShort}</span>
+                    <RefreshCw size={15} strokeWidth={2} aria-hidden="true" />
+                  </button>
+
+                  <div className="menu-switch-row">
+                    <div className="menu-switch-copy">
+                      <span className="menu-switch-label">{t.menuLanguageLabel}</span>
+                      <span className="menu-switch-state">{languageStateLabel}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className={`menu-switch-btn ${language === 'ar' ? 'is-active' : ''}`}
+                      onClick={() => handleLanguageSelect(language === 'en' ? 'ar' : 'en')}
+                      aria-label={t.languageTarget}
+                      aria-pressed={language === 'ar'}
+                      title={t.languageTarget}
+                    >
+                      <span className="menu-switch-thumb" aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  <div className="menu-switch-row">
+                    <div className="menu-switch-copy">
+                      <span className="menu-switch-label">{t.menuThemeLabel}</span>
+                      <span className="menu-switch-state">{themeStateLabel}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className={`menu-switch-btn ${theme === 'dark' ? 'is-active' : ''}`}
+                      onClick={() => handleThemeSelect(theme === 'dark' ? 'light' : 'dark')}
+                      aria-label={theme === 'dark' ? t.themeToLight : t.themeToDark}
+                      aria-pressed={theme === 'dark'}
+                      title={theme === 'dark' ? t.themeToLight : t.themeToDark}
+                    >
+                      <span className="menu-switch-thumb" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -412,10 +626,29 @@ export default function App() {
         {error && <p className="status error">{error}</p>}
         {info && <p className="status info">{info}</p>}
 
-        {title && <h2 className="video-title">{title}</h2>}
-
         {formats.length > 0 && (
           <>
+            <article className="video-preview-card">
+              <div className="video-preview-thumbnail">
+                {videoPreview.thumbnailUrl ? (
+                  <img src={videoPreview.thumbnailUrl} alt={t.videoThumbnailAlt} loading="lazy" />
+                ) : (
+                  <div className="video-preview-thumbnail-fallback" aria-hidden="true" />
+                )}
+                {videoPreview.durationLabel && (
+                  <span className="video-duration-badge">{videoPreview.durationLabel}</span>
+                )}
+              </div>
+              <div className="video-preview-content">
+                <h3 className="video-preview-title">{title}</h3>
+                <div className="video-channel-row">
+                  <span className="video-channel-avatar video-channel-avatar-fallback" aria-hidden="true">
+                    {channelDisplayInitial}
+                  </span>
+                  <span className="video-channel-name">{channelDisplayName}</span>
+                </div>
+              </div>
+            </article>
             <ul className="format-list">
               {formats.map((format) => (
                 <li key={format.formatId} className="quality-card">
